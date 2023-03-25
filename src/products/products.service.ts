@@ -1,8 +1,12 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { Product } from './products.model';
 
 @Injectable()
 export class ProductsService {
+  // const maxId = this.products.reduce((max, prod) => {
+  //   return max > parseInt(prod.id) ? max : parseInt(prod.id);
+  // }, 0);
+
   private products: Product[] = [
     {
       id: '1',
@@ -43,7 +47,31 @@ export class ProductsService {
       title: prodTitle,
       description: prodDesc,
     });
-
+    console.log('Added product:', this.products[-1]);
     return nextId;
+  }
+  findProduct(id: string) {
+    return this.products.findIndex((value) => value.id == id);
+  }
+  deleteProduct(id: string) {
+    const productIndex = this.findProduct(id);
+    if (productIndex == -1) {
+      throw new NotFoundException('Product not found');
+    } else {
+      this.products.splice(productIndex, 1);
+      return id;
+    }
+  }
+  updateProduct(id: string, prodTitle: string, prodDesc: string) {
+    const productIndex = this.findProduct(id);
+    if (productIndex == -1) {
+      throw new NotFoundException('Product not found');
+    } else {
+      const updatedProduct = this.products[productIndex];
+      updatedProduct.description = prodDesc ?? updatedProduct.description;
+      updatedProduct.title = prodTitle ?? updatedProduct.title;
+      this.products[productIndex] = updatedProduct;
+      return { ...this.products[productIndex] };
+    }
   }
 }
