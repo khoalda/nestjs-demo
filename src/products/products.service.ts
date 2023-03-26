@@ -3,10 +3,6 @@ import { Product } from './products.model';
 
 @Injectable()
 export class ProductsService {
-  // const maxId = this.products.reduce((max, prod) => {
-  //   return max > parseInt(prod.id) ? max : parseInt(prod.id);
-  // }, 0);
-
   private products: Product[] = [
     {
       id: '1',
@@ -25,53 +21,73 @@ export class ProductsService {
     },
   ];
 
+  findProduct(id: string) {
+    return this.products.findIndex((value) => value.id == id);
+  }
+
   getProducts() {
+    // Return a copy of the array
     return [...this.products];
   }
 
   getProduct(prodId: string) {
-    return this.products.find((prod) => prod.id === prodId);
+    // Find the product with the given id
+    const index = this.findProduct(prodId);
+
+    // If the product is not found, throw an error
+    if (index == -1) {
+      throw new NotFoundException('Product not found');
+    }
+
+    // Return a copy of the product
+    return { ...this.products[index] };
   }
 
   insertProduct(prodTitle: string, prodDesc: string) {
-    // const prodId = (Math.random() % 100).toString();
+    // Get the last productId in the array
     const lastId = this.products[this.products.length - 1].id;
-    // const maxId = this.products.reduce((max, prod) => {
-    //   return max > parseInt(prod.id) ? max : parseInt(prod.id);
-    // }, 0);
 
+    // Convert the last product's id to a number and add 1
     const nextId = (parseInt(lastId) + 1).toString();
 
+    // Add the new product to the array
     this.products.push({
       id: nextId,
       title: prodTitle,
       description: prodDesc,
     });
-    console.log('Added product:', this.products[-1]);
+
     return nextId;
   }
-  findProduct(id: string) {
-    return this.products.findIndex((value) => value.id == id);
-  }
+
   deleteProduct(id: string) {
     const productIndex = this.findProduct(id);
+
+    // If the product is not found, throw an error
     if (productIndex == -1) {
       throw new NotFoundException('Product not found');
     } else {
+      // Remove the product from the array
       this.products.splice(productIndex, 1);
       return id;
     }
   }
+
   updateProduct(id: string, prodTitle: string, prodDesc: string) {
     const productIndex = this.findProduct(id);
+
+    // If the product is not found, throw an error
     if (productIndex == -1) {
       throw new NotFoundException('Product not found');
-    } else {
-      const updatedProduct = this.products[productIndex];
-      updatedProduct.description = prodDesc ?? updatedProduct.description;
-      updatedProduct.title = prodTitle ?? updatedProduct.title;
-      this.products[productIndex] = updatedProduct;
-      return { ...this.products[productIndex] };
     }
+
+    const updatedProduct = this.products[productIndex];
+
+    // Update the product's properties
+    updatedProduct.description = prodDesc ?? updatedProduct.description;
+    updatedProduct.title = prodTitle ?? updatedProduct.title;
+
+    this.products[productIndex] = updatedProduct;
+    return { ...this.products[productIndex] };
   }
 }
